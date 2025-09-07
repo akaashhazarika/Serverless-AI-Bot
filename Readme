@@ -1,0 +1,38 @@
+## Authenticate and enable services
+gcloud auth login
+
+
+## Set your project id
+export PROJECT_ID=ai-serverless-assistant
+
+
+gcloud services enable run.googleapis.com 
+gcloud services enable aiplatform.googleapis.com
+gcloud services enable firestore.googleapis.com
+gcloud services enable iam.googleapis.com
+gcloud services enable cloudbuild.googleapis.com
+gcloud services enable  cloudresourcemanager.googleapis.com
+
+gcloud firestore databases create --location=us-central1 --project=ai-serverless-assistant
+
+gcloud run deploy personal-ai-assistant \
+  --source . \
+  --platform managed \
+  --region us-central1 \
+  --allow-unauthenticated \
+  --set-env-vars="GCP_PROJECT_ID=${PROJECT_ID}"
+
+
+  gcloud run services describe personal-ai-assistant \
+  --region us-central1 \
+  --format=export > service.yaml
+
+
+
+## DELETIONS:
+gcloud run services delete personal-ai-assistant --region us-central1
+
+gcloud firestore databases delete --database=ai-serverless-assistant --project=ai-serverless-assistant
+
+
+
