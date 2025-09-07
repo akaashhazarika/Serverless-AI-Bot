@@ -1,3 +1,0 @@
-# Serverless-AI-Bot
-
-Readme
