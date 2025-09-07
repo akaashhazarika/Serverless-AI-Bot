@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal AI Assistant</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f4f7f6; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        .chat-container { width: 90%; max-width: 600px; height: 80vh; background-color: #fff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); display: flex; flex-direction: column; }
+        .chat-header { padding: 20px; background-color: #4A90E2; color: white; border-top-left-radius: 12px; border-top-right-radius: 12px; text-align: center; }
+        .chat-messages { flex-grow: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
+        .message { padding: 10px 15px; border-radius: 18px; max-width: 80%; line-height: 1.5; }
+        .user-message { background-color: #4A90E2; color: white; align-self: flex-end; }
+        .assistant-message { background-color: #e9e9eb; color: #333; align-self: flex-start; }
+        .chat-input { padding: 20px; border-top: 1px solid #ddd; }
+        #message-form { display: flex; gap: 10px; }
+        #message-input { flex-grow: 1; padding: 12px; border: 1px solid #ccc; border-radius: 20px; font-size: 16px; }
+        #message-form button { padding: 12px 20px; border: none; background-color: #4A90E2; color: white; border-radius: 20px; cursor: pointer; font-size: 16px; }
+    </style>
+</head>
+<body>
+<div class="chat-container">
+    <div class="chat-header"><h2>My Personal Assistant 🤖</h2></div>
+    <div class="chat-messages" id="chat-messages"><div class="message assistant-message">Hello! How can I help you?</div></div>
+    <div class="chat-input"><form id="message-form"><input type="text" id="message-input" placeholder="Ask me anything..." required><button type="submit">Send</button></form></div>
+</div>
+<script>
+    const chatMessages = document.getElementById('chat-messages');
+    const messageForm = document.getElementById('message-form');
+    const messageInput = document.getElementById('message-input');
+    const BACKEND_URL = 'https://personal-ai-assistant-1006571937830.us-central1.run.app/ask';
+    let userId = localStorage.getItem('assistant-user-id') || 'user_' + Date.now();
+    localStorage.setItem('assistant-user-id', userId);
+
+    messageForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const question = messageInput.value.trim();
+        if (!question) return;
+        addMessage(question, 'user-message');
+        messageInput.value = '';
+        const thinkingIndicator = addMessage('Thinking...', 'assistant-message');
+        try {
+            const response = await fetch(BACKEND_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ question: question, user_id: userId }) });
+            if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+            const data = await response.json();
+            thinkingIndicator.remove();
+            addMessage(data.response, 'assistant-message');
+        } catch (error) {
+            console.error('Error:', error);
+            thinkingIndicator.remove();
+            addMessage('Sorry, I am having trouble connecting.', 'assistant-message');
+        }
+    });
+    function addMessage(text, className) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${className}`;
+        messageDiv.textContent = text;
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        return messageDiv;
+    }
+</script>
+</body>
+</html>
